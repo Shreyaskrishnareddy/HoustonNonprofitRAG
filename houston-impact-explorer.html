@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Houston Impact Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #1D1D1F;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 4px 32px 0 rgba(31, 38, 135, 0.2);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #007AFF 0%, #34C759 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-button {
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: none;
+            background: transparent;
+            color: #1D1D1F;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-button:hover, .nav-button.active {
+            background: rgba(0, 122, 255, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #007AFF 0%, #34C759 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            letter-spacing: -0.025em;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #86868B;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .chat-container {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .messages {
+            min-height: 400px;
+            max-height: 600px;
+            overflow-y: auto;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+        }
+
+        .message {
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 1rem;
+            font-size: 1.2rem;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #007AFF 0%, #5AC8FA 100%);
+        }
+
+        .message.assistant .message-avatar {
+            background: linear-gradient(135deg, #34C759 0%, #30D158 100%);
+        }
+
+        .message-content {
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            max-width: 70%;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .message.user .message-content {
+            background: rgba(0, 122, 255, 0.2);
+        }
+
+        .sources {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 0.9rem;
+        }
+
+        .source-item {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(20px);
+            color: #1D1D1F;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 50px;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border: 2px solid #007AFF;
+        }
+
+        .send-button {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #007AFF 0%, #5AC8FA 100%);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px 0 rgba(0, 122, 255, 0.3);
+        }
+
+        .send-button:hover {
+            background: linear-gradient(135deg, #0051D5 0%, #007AFF 100%);
+            box-shadow: 0 6px 20px 0 rgba(0, 122, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .suggestion-button {
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(0, 122, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #007AFF;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .suggestion-button:hover {
+            background: rgba(0, 122, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .loading {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            color: #86868B;
+        }
+
+        .loading.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #86868B;
+            border-top: 2px solid #007AFF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .timestamp {
+            font-size: 0.8rem;
+            color: #86868B;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">Houston Impact Explorer</div>
+        <nav class="nav">
+            <button class="nav-button">🏠 Overview</button>
+            <button class="nav-button">🏢 Organizations</button>
+            <button class="nav-button active">🤖 AI Explorer</button>
+        </nav>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Houston Impact Explorer</h1>
+            <p>Discover and explore Houston's nonprofit ecosystem with AI-powered insights</p>
+        </div>
+
+        <div class="chat-container">
+            <div class="suggestions">
+                <button class="suggestion-button" onclick="askQuestion('What are Houston\\'s largest nonprofits by impact?')">🏆 Largest nonprofits</button>
+                <button class="suggestion-button" onclick="askQuestion('Show me organizations helping with food security')">🍽️ Food security</button>
+                <button class="suggestion-button" onclick="askQuestion('Find nonprofits focused on education and youth')">📚 Education</button>
+                <button class="suggestion-button" onclick="askQuestion('Which organizations support healthcare access?')">🏥 Healthcare</button>
+                <button class="suggestion-button" onclick="askQuestion('Tell me about arts and culture nonprofits')">🎨 Arts & Culture</button>
+            </div>
+
+            <div class="messages" id="messages">
+                <div class="message assistant">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <div>Welcome to Houston Impact Explorer! 🌟 I'm your AI assistant specializing in Houston-area nonprofits. I can help you discover organizations by mission, impact area, financial data, or any specific causes you care about. What would you like to explore?</div>
+                        <div class="timestamp" id="timestamp"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <span>Thinking...</span>
+            </div>
+
+            <div class="input-container">
+                <textarea 
+                    class="chat-input" 
+                    id="chatInput" 
+                    placeholder="Ask about nonprofits, causes, or impact areas in Houston..."
+                    rows="2"
+                ></textarea>
+                <button class="send-button" id="sendButton" onclick="sendMessage()">
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set initial timestamp
+        document.getElementById('timestamp').textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+
+        function askQuestion(question) {
+            document.getElementById('chatInput').value = question;
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+
+            const messagesContainer = document.getElementById('messages');
+            const loading = document.getElementById('loading');
+            const sendButton = document.getElementById('sendButton');
+
+            // Add user message
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message user';
+            userMessage.innerHTML = `
+                <div class="message-avatar">👤</div>
+                <div class="message-content">
+                    <div>${message}</div>
+                    <div class="timestamp">${new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</div>
+                </div>
+            `;
+            messagesContainer.appendChild(userMessage);
+
+            // Clear input and show loading
+            input.value = '';
+            loading.classList.add('show');
+            sendButton.disabled = true;
+
+            try {
+                const response = await fetch('http://localhost:8000/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message }),
+                });
+
+                const data = await response.json();
+
+                // Create assistant message
+                const assistantMessage = document.createElement('div');
+                assistantMessage.className = 'message assistant';
+                
+                let sourcesHtml = '';
+                if (data.sources && data.sources.length > 0) {
+                    sourcesHtml = '<div class="sources"><strong>Sources:</strong>';
+                    data.sources.slice(0, 3).forEach(source => {
+                        sourcesHtml += `
+                            <div class="source-item">
+                                <strong>${source.name}</strong><br>
+                                ${source.category} • Revenue: $${source.revenue ? source.revenue.toLocaleString() : 'N/A'}<br>
+                                ${source.website ? `<a href="${source.website}" target="_blank" style="color: #007AFF;">${source.website}</a>` : ''}
+                            </div>
+                        `;
+                    });
+                    sourcesHtml += '</div>';
+                }
+
+                assistantMessage.innerHTML = `
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <div>${data.response}</div>
+                        ${sourcesHtml}
+                        <div class="timestamp">${new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</div>
+                    </div>
+                `;
+                messagesContainer.appendChild(assistantMessage);
+
+            } catch (error) {
+                console.error('Error:', error);
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'message assistant';
+                errorMessage.innerHTML = `
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <div>Sorry, I encountered an error while processing your request. Please try again.</div>
+                        <div class="timestamp">${new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</div>
+                    </div>
+                `;
+                messagesContainer.appendChild(errorMessage);
+            } finally {
+                loading.classList.remove('show');
+                sendButton.disabled = false;
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+
+        // Handle Enter key
+        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>

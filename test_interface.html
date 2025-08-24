@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Houston Nonprofit RAG - Test Interface</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .chat-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #fafafa;
+            margin-bottom: 20px;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            text-align: right;
+        }
+        .bot-message {
+            background-color: #e9ecef;
+            color: #333;
+        }
+        .sources {
+            background-color: #f8f9fa;
+            border-left: 4px solid #28a745;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        button {
+            padding: 12px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .suggestions {
+            margin: 20px 0;
+        }
+        .suggestion-btn {
+            display: inline-block;
+            padding: 8px 12px;
+            margin: 5px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #495057;
+        }
+        .suggestion-btn:hover {
+            background-color: #e9ecef;
+        }
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 6px;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Houston Nonprofit RAG System</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 30px;">
+            Ask questions about Houston's nonprofit organizations and get intelligent, data-driven answers.
+        </p>
+        
+        <div class="suggestions">
+            <strong>Try these sample questions:</strong><br>
+            <span class="suggestion-btn" onclick="askQuestion('What are Houston\\'s largest nonprofits by impact?')">What are Houston's largest nonprofits by impact?</span>
+            <span class="suggestion-btn" onclick="askQuestion('Tell me about the Houston Food Bank')">Tell me about the Houston Food Bank</span>
+            <span class="suggestion-btn" onclick="askQuestion('What healthcare nonprofits are in Houston?')">What healthcare nonprofits are in Houston?</span>
+            <span class="suggestion-btn" onclick="askQuestion('Which nonprofits focus on education?')">Which nonprofits focus on education?</span>
+        </div>
+        
+        <div class="chat-container" id="chatContainer">
+            <div class="message bot-message">
+                <strong>Houston Nonprofit RAG:</strong> Hello! I can help you learn about Houston's nonprofit organizations. Ask me anything about their missions, financials, programs, or impact.
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <input type="text" id="questionInput" placeholder="Ask about Houston nonprofits..." 
+                   onkeypress="if(event.key==='Enter') sendQuestion()">
+            <button onclick="sendQuestion()" id="sendBtn">Send</button>
+        </div>
+        
+        <div class="status success" id="status">
+            ✅ System Ready - 62 nonprofits loaded with current financial data
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let conversationId = 'web-' + Date.now();
+
+        async function sendQuestion() {
+            const input = document.getElementById('questionInput');
+            const question = input.value.trim();
+            if (!question) return;
+            
+            askQuestion(question);
+            input.value = '';
+        }
+
+        async function askQuestion(question) {
+            const chatContainer = document.getElementById('chatContainer');
+            const sendBtn = document.getElementById('sendBtn');
+            const status = document.getElementById('status');
+            
+            // Add user message
+            const userMsg = document.createElement('div');
+            userMsg.className = 'message user-message';
+            userMsg.innerHTML = `<strong>You:</strong> ${question}`;
+            chatContainer.appendChild(userMsg);
+            
+            // Disable send button and show loading
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Thinking...';
+            status.className = 'status';
+            status.textContent = '🤔 Processing your question...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: question,
+                        conversation_id: conversationId
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Add bot response
+                const botMsg = document.createElement('div');
+                botMsg.className = 'message bot-message';
+                
+                let sourcesHtml = '';
+                if (data.sources && data.sources.length > 0) {
+                    sourcesHtml = '<div class="sources"><strong>📊 Sources:</strong><br>';
+                    data.sources.slice(0, 5).forEach((source, i) => {
+                        const revenue = source.revenue ? `$${source.revenue.toLocaleString()}` : 'N/A';
+                        sourcesHtml += `${i+1}. <strong>${source.name}</strong> (${source.category}) - Revenue: ${revenue}<br>`;
+                    });
+                    sourcesHtml += '</div>';
+                }
+                
+                botMsg.innerHTML = `<strong>Houston Nonprofit RAG:</strong> ${data.response}${sourcesHtml}`;
+                chatContainer.appendChild(botMsg);
+                
+                // Scroll to bottom
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                status.className = 'status success';
+                status.textContent = `✅ Found ${data.sources?.length || 0} relevant organizations`;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'message bot-message';
+                errorMsg.innerHTML = `<strong>Houston Nonprofit RAG:</strong> Sorry, I encountered an error: ${error.message}. Please make sure the backend server is running on http://localhost:8000`;
+                chatContainer.appendChild(errorMsg);
+                
+                status.className = 'status error';
+                status.textContent = '❌ Error connecting to server';
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Send';
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        }
+        
+        // Test server connection on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const status = document.getElementById('status');
+                    status.className = 'status success';
+                    status.textContent = `✅ Server connected - Status: ${data.status}`;
+                }
+            } catch (error) {
+                const status = document.getElementById('status');
+                status.className = 'status error';
+                status.textContent = '❌ Cannot connect to server - Make sure backend is running on http://localhost:8000';
+            }
+        });
+    </script>
+</body>
+</html>

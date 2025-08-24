@@ -1,0 +1,6 @@
+{
+  "num_documents": 62,
+  "embedding_type": "tfidf",
+  "max_features": 5000,
+  "created_at": "2025-08-24T04:48:19"
+}

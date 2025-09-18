@@ -227,7 +227,3 @@ For questions, issues, or contributions:
 - **Discussions**: [GitHub Discussions](https://github.com/Gitit-app/HoustonRag/discussions)
 
 ---
-
-**Built with ❤️ for the Houston nonprofit community**
-
-*Empowering better understanding and support of Houston's charitable organizations through AI-powered insights.*
